@@ -929,6 +929,43 @@ public class GitHub {
     }
 
     /**
+     * Delete a gist.
+     *
+     * @param id
+     * @throws IOException
+     */
+    public void deleteGist(String id) throws IOException {
+        createRequest().method("DELETE").withUrlPath("/gists/" + id).send();
+    }
+
+    /**
+     * List gists for the authenticated user.
+     *
+     * @return
+     */
+    public PagedIterable<GHGist> listGists() {
+        return createRequest().withUrlPath("/gists").toIterable(GHGist[].class, null);
+    }
+
+    /**
+     * List the authenticated user's starred gists.
+     *
+     * @return
+     */
+    public PagedIterable<GHGist> listStarredGists() {
+        return createRequest().withUrlPath("/gists/starred").toIterable(GHGist[].class, null);
+    }
+
+    /**
+     * List public gists sorted by most recently updated to least recently updated.
+     *
+     * @return
+     */
+    public PagedIterable<GHGist> listPublicGists() {
+        return createRequest().withUrlPath("/gists/public").toIterable(GHGist[].class, null);
+    }
+
+    /**
      * Parses the GitHub event object.
      * <p>
      * This is primarily intended for receiving a POST HTTP call from a hook. Unfortunately, hook script payloads aren't
