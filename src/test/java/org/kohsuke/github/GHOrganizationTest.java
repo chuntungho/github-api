@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.assertThrows;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -155,6 +156,66 @@ public class GHOrganizationTest extends AbstractGitHubWireMockTest {
     }
 
     /**
+     * Test create repository with template.
+     *
+     * @throws IOException
+     *             Signals that an I/O exception has occurred.
+     */
+    @Test
+    public void testCreateRepositoryWithTemplateAndGHRepository() throws IOException {
+        cleanupRepository(GITHUB_API_TEST_ORG + '/' + GITHUB_API_TEST);
+
+        GHOrganization org = gitHub.getOrganization(GITHUB_API_TEST_ORG);
+        GHRepository templateRepository = org.getRepository(GITHUB_API_TEMPLATE_TEST);
+
+        GHRepository repository = org.createRepository(GITHUB_API_TEST)
+                .fromTemplateRepository(templateRepository)
+                .owner(GITHUB_API_TEST_ORG)
+                .create();
+
+        assertThat(repository, notNullValue());
+        assertThat(repository.getReadme(), notNullValue());
+
+    }
+
+    /**
+     * Test create repository with template repository null.
+     *
+     * @throws IOException
+     *             Signals that an I/O exception has occurred.
+     */
+    @Test
+    public void testCreateRepositoryFromTemplateRepositoryNull() throws IOException {
+        cleanupRepository(GITHUB_API_TEST_ORG + '/' + GITHUB_API_TEST);
+
+        GHOrganization org = gitHub.getOrganization(GITHUB_API_TEST_ORG);
+        assertThrows(NullPointerException.class, () -> {
+            org.createRepository(GITHUB_API_TEST).fromTemplateRepository(null).owner(GITHUB_API_TEST_ORG).create();
+        });
+    }
+
+    /**
+     * Test create repository when repository template is not a template.
+     *
+     * @throws IOException
+     *             Signals that an I/O exception has occurred.
+     */
+    @Test
+    public void testCreateRepositoryWhenRepositoryTemplateIsNotATemplate() throws IOException {
+        cleanupRepository(GITHUB_API_TEST_ORG + '/' + GITHUB_API_TEST);
+
+        GHOrganization org = gitHub.getOrganization(GITHUB_API_TEST_ORG);
+        GHRepository templateRepository = org.getRepository(GITHUB_API_TEMPLATE_TEST);
+
+        assertThrows(IllegalArgumentException.class, () -> {
+            org.createRepository(GITHUB_API_TEST)
+                    .fromTemplateRepository(templateRepository)
+                    .owner(GITHUB_API_TEST_ORG)
+                    .create();
+        });
+    }
+
+    /**
      * Test invite user.
      *
      * @throws IOException
@@ -222,6 +283,65 @@ public class GHOrganizationTest extends AbstractGitHubWireMockTest {
         GHOrganization org = gitHub.getOrganization(GITHUB_API_TEST_ORG);
 
         List<GHUser> admins = org.listMembersWithRole("admin").toList();
+
+        assertThat(admins, notNullValue());
+        // In case more are added in the future
+        assertThat(admins.size(), greaterThanOrEqualTo(12));
+        assertThat(admins.stream().map(GHUser::getLogin).collect(Collectors.toList()),
+                hasItems("alexanderrtaylor",
+                        "asthinasthi",
+                        "bitwiseman",
+                        "farmdawgnation",
+                        "halkeye",
+                        "jberglund-BSFT",
+                        "kohsuke",
+                        "kohsuke2",
+                        "martinvanzijl",
+                        "PauloMigAlmeida",
+                        "Sage-Pierce",
+                        "timja"));
+    }
+
+    /**
+     * Test list outside collaborators.
+     *
+     * @throws IOException
+     *             Signals that an I/O exception has occurred.
+     */
+    @Test
+    public void testListOutsideCollaborators() throws IOException {
+        GHOrganization org = gitHub.getOrganization(GITHUB_API_TEST_ORG);
+
+        List<GHUser> admins = org.listOutsideCollaborators().toList();
+
+        assertThat(admins, notNullValue());
+        // In case more are added in the future
+        assertThat(admins.size(), greaterThanOrEqualTo(12));
+        assertThat(admins.stream().map(GHUser::getLogin).collect(Collectors.toList()),
+                hasItems("alexanderrtaylor",
+                        "asthinasthi",
+                        "bitwiseman",
+                        "farmdawgnation",
+                        "halkeye",
+                        "jberglund-BSFT",
+                        "kohsuke",
+                        "kohsuke2",
+                        "martinvanzijl",
+                        "PauloMigAlmeida",
+                        "Sage-Pierce",
+                        "timja"));
+    }
+    /**
+     * Test list outside collaborators with filter.
+     *
+     * @throws IOException
+     *             Signals that an I/O exception has occurred.
+     */
+    @Test
+    public void testListOutsideCollaboratorsWithFilter() throws IOException {
+        GHOrganization org = gitHub.getOrganization(GITHUB_API_TEST_ORG);
+
+        List<GHUser> admins = org.listOutsideCollaboratorsWithFilter("all").toList();
 
         assertThat(admins, notNullValue());
         // In case more are added in the future
